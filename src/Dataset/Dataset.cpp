@@ -4,14 +4,14 @@
 #include "Dataset.h"
 #include <iostream>
 #include <fmt/core.h>
-#include <experimental/filesystem>
+#include <filesystem>
 #include "../Utils/cnpy.h"
 #include "../Utils/Utils.h"
 #include "../Utils/StopWatch.h"
 
 using Tensor = torch::Tensor;
 
-namespace fs = std::experimental::filesystem::v1;
+namespace fs = std::filesystem;
 
 Dataset::Dataset(GlobalDataPool* global_data_pool) {
   ScopeWatch dataset_watch("Dataset::Dataset");

@@ -1,12 +1,12 @@
 // https://github.com/p-ranav/glob
 #pragma once
-#include <experimental/filesystem>
+#include <filesystem>
 #include <string>
 #include <vector>
 
 namespace glob {
 
-namespace fs = std::experimental::filesystem::v1;
+namespace fs = std::filesystem;
 
 /// \param pathname string containing a path specification
 /// \return vector of paths that match the pathname

@@ -9,11 +9,10 @@
 #include "Utils/Utils.h"
 #include "Utils/cnpy.h"
 
-#include <experimental/filesystem>  // GCC 7.5?
-
+#include <filesystem>
 #include <fmt/core.h>
 
-namespace fs = std::experimental::filesystem::v1;
+namespace fs = std::filesystem;
 using Tensor = torch::Tensor;
 
 LocalizationExecuter::LocalizationExecuter(const std::string & conf_path)

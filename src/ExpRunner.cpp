@@ -3,14 +3,14 @@
 //
 
 #include "ExpRunner.h"
-#include <experimental/filesystem>  // GCC 7.5?
+#include <filesystem>
 #include <fmt/core.h>
 #include "Utils/Utils.h"
 #include "Utils/cnpy.h"
 #include "Utils/StopWatch.h"
 #include "Utils/CustomOps/CustomOps.h"
 
-namespace fs = std::experimental::filesystem::v1;
+namespace fs = std::filesystem;
 using Tensor = torch::Tensor;
 
 
@@ -22,7 +22,7 @@ ExpRunner::ExpRunner(const std::string& conf_path) {
 
   base_exp_dir_ = config["base_exp_dir"].as<std::string>();
   global_data_pool_->base_exp_dir_ = base_exp_dir_;
-  
+
   fs::create_directories(base_exp_dir_);
 
   pts_batch_size_ = config["train"]["pts_batch_size"].as<int>();
