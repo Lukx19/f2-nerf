@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  container:
+  fastnerf:
     image:
       f2-nerf-image
     container_name:
@@ -9,7 +9,8 @@ services:
       context: .
       dockerfile: ./Dockerfile
     volumes:
-      - $HOME/data:/root/data
+      - $HOME/data:/home/user/data:cached
+      - ..:/home/user/workspace/:cached
     command: bash
     deploy:
       resources:
@@ -19,3 +20,4 @@ services:
               count: all
               capabilities: [gpu]
     tty: true
+    # stdin_open: true

@@ -1,0 +1,27 @@
+{
+    "name": "fastnerf",
+    "dockerComposeFile": "./docker-compose.yml",
+    "service": "fastnerf",
+    "workspaceFolder": "/home/user/workspace/",
+    "shutdownAction": "stopCompose",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+            "076923.python-image-preview",
+            "cheshirekow.cmake-format",
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "ms-vscode.cmake-tools",
+            "ms-vscode.cpptools",
+            "ms-vscode.cpptools-extension-pack",
+            "ms-vscode.cpptools-themes",
+            "njpwerner.autodocstring",
+            "Percy.vscode-numpy-viewer",
+            "twxs.cmake",
+            "eamodio.gitlens",
+            "mhutchie.git-graph",
+            "ms-azuretools.vscode-docker"
+        ]
+      }
+    }
+}
