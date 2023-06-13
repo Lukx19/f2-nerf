@@ -9,7 +9,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     volumes:
-      - $HOME/data:/home/user/data:cached
+      - /mnt/e/Datasets:/home/user/data:cached
       - ..:/home/user/workspace/:cached
     command: bash
     deploy:

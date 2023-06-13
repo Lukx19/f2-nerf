@@ -1,5 +1,5 @@
 defaults:
-  - train: 20k
+  - train: 50k
   - dataset: default
   - renderer: default
   - pts_sampler: perspective
@@ -19,9 +19,13 @@ renderer:
   # Appearance embedding to handling unstable lighting conditions
   use_app_emb: true
 
+field:
+  log2_table_size: 23
+
 pts_sampler:
   near: 0.01
   scale_by_dis: true
+  # sub_div_milestones: [ 1000, 3000, 5000, 7000, 90000 ]
 
 dataset:
   factor: 1
@@ -29,3 +33,5 @@ dataset:
 
 train:
   ray_march_init_fineness: 16
+  # pts_batch_size: 362144
+  vis_freq: 1000
