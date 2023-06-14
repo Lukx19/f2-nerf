@@ -4,8 +4,9 @@ from pathlib import Path
 import shutil
 from typing import Dict, List, Optional
 import numpy as np
+from PIL import Image
 
-from scripts.mvs_utils import find_camera_file, find_images_folder, find_pair_file, format_index, read_camera_parameters, read_pair_file
+from scripts.mvs_utils import export_nerfstudio, find_camera_file, find_images_folder, find_pair_file, format_index, read_camera_parameters, read_pair_file, serialize_frames
 
 def main():
     parser = argparse.ArgumentParser()
@@ -26,12 +27,15 @@ def main():
     res_img_folder.mkdir(exist_ok=True, parents=True)
     res_cams = Path(args.out_dir).joinpath("cams_meta.npy")
     res_image_list = Path(args.out_dir).joinpath("image_list.txt")
+    res_transforms = Path(args.out_dir).joinpath("transforms.json")
 
     image_list = []
     poses = []
     cams2pix = []
     bounds = []
     dist_params = []
+    img_width = None
+    img_height = None
     pairs = read_pair_file(pair_file, 1)
     keys = list(sorted(pairs.keys()))
     end_index = args.end_index
@@ -46,6 +50,11 @@ def main():
         image_list.append(str(res_img_path)+ "\n")
         shutil.copyfile(img_path, res_img_path)
 
+        if img_width is None:
+            img = Image.open(res_img_path)
+            img_width = img.width
+            img_height = img.height
+
         intrinsics, extrinsics, depth_min, depth_max = read_camera_parameters(cam_folder.joinpath(format_index(key) + "_cam.txt"))
         # Convert extrinsics to camera-to-world.
         c2w_mats = np.linalg.inv(extrinsics)
@@ -58,6 +67,11 @@ def main():
         cams2pix.append(intrinsics)
         bounds.append(np.array([depth_min, depth_max]))
 
+    assert img_width
+    assert img_height
+    frames = export_nerfstudio(
+        image_list, poses, cams2pix, bounds, dist_params, img_width, img_height)
+    serialize_frames(res_transforms, frames)
 
     poses = np.stack(poses)
     cams2pix = np.stack(cams2pix)

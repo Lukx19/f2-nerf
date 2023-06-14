@@ -1,3 +1,6 @@
+from dataclasses import asdict, dataclass
+from functools import singledispatch
+import json
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -79,3 +82,58 @@ def find_pair_file(dataset_folder: Path) -> Optional[Path]:
             break
 
     return valid_path
+
+@singledispatch
+def to_serializable(val):
+    """Used by default."""
+    return str(val)
+
+@to_serializable.register(np.float32)
+def ts_float32(val):
+    """Used if *val* is an instance of numpy.float32."""
+    return np.float64(val)
+
+@dataclass
+class Frame:
+    file_path: str
+    # Frame coordinate system: +X is right, +Y is up, and +Z is pointing back and away from the camera.
+    transform_matrix: List[List[float]] # view2world matrix
+    fl_x: int # focal length x
+    fl_y: int # focal length y
+    cx: int # principal point x
+    cy: int # principal point y
+
+@dataclass
+class FramesData:
+#   fl_x: int # focal length x
+#   fl_y: int # focal length y
+#   cx: int # principal point x
+#   cy: int # principal point y
+  w: int #image width
+  h: int #image height
+  k1: int # first radial distorial parameter, used by [OPENCV, OPENCV_FISHEYE]
+  k2: int # second radial distorial parameter, used by [OPENCV, OPENCV_FISHEYE]
+  k3: int # third radial distorial parameter, used by [OPENCV_FISHEYE]
+  k4: int # fourth radial distorial parameter, used by [OPENCV_FISHEYE]
+  p1: int # first tangential distortion parameter, used by [OPENCV]
+  p2: int # second tangential distortion parameter, used by [OPENCV]
+  frames: List[Frame] #r-frame intrinsics and extrinsics parameters
+  camera_model: str = "OPENCV" # camera model type [OPENCV, OPENCV_FISHEYE]
+
+
+def export_nerfstudio(image_list, poses, intrinsics, bounds, dist_params, img_width, img_height):
+    frames = FramesData(img_width,img_height,dist_params[0][0],dist_params[0][1],dist_params[0][2],0,dist_params[0][3],0,[])
+    for img_path, pose, intrinsic, near_far in zip(image_list, poses, intrinsics, bounds):
+        filename = os.path.basename(img_path)
+        pose = np.concatenate([pose, np.array([[0,0,0,1]])], axis=0)
+        frame = Frame("images/"+filename, pose.astype(np.float64).tolist(),
+                      intrinsic[0,0], intrinsic[1,1],
+                      intrinsic[0,2], intrinsic[1,2])
+        frames.frames.append(frame)
+    return frames
+
+def serialize_frames(filepath, frames):
+     with open(filepath, "w") as f:
+        frames_dict = asdict(frames)
+        data_str = json.dumps(frames_dict, default=to_serializable)
+        f.write(data_str)

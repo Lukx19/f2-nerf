@@ -10,6 +10,8 @@ from scipy.spatial.transform import Rotation
 import numpy as np
 from tqdm import tqdm
 
+from mvs_utils import export_nerfstudio, serialize_frames
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("qar_rec_folder", type=str)
@@ -28,6 +30,7 @@ def main():
     res_img_folder.mkdir(exist_ok=True, parents=True)
     res_cams = Path(args.out_dir).joinpath("cams_meta.npy")
     res_image_list = Path(args.out_dir).joinpath("image_list.txt")
+    res_transforms = Path(args.out_dir).joinpath("transforms.json")
 
     image_paths = sorted(glob.glob(data_folder + "*.ppm"),key=lambda val: int(extract_image_id(val)))
     n_images = len(image_paths)
@@ -36,6 +39,8 @@ def main():
     cams2pix = []
     bounds = []
     dist_params = []
+    img_width = None
+    img_height = None
     for image_path in tqdm(image_paths):
         index = extract_image_id(image_path)
         index_out =  f"{int(index):08d}"
@@ -45,6 +50,8 @@ def main():
         image_list.append(os.path.abspath(res_img_path))
 
         h, w = img.height, img.width
+        img_width = w
+        img_height = h
         pose_file = os.path.join(data_folder, "pose"+index+".txt")
         with open(pose_file, "r") as f:
             angles = [float(val) for val in f.readline().split(" ")]
@@ -64,20 +71,24 @@ def main():
             bounds.append(np.array([near, far]))
             cams2pix.append(intrinsics)
 
-    poses = np.stack(poses)
-    cams2pix = np.stack(cams2pix)
-    bounds = np.stack(bounds)
-    dist_params = np.stack(dist_params)
+    poses_np = np.stack(poses)
+    cams2pix_np = np.stack(cams2pix)
+    bounds_np = np.stack(bounds)
+    dist_params_np = np.stack(dist_params)
 
-    data = np.concatenate([poses.reshape([n_images, -1]),
-                            cams2pix.reshape([n_images, -1]),
-                            dist_params.reshape([n_images, -1]),
-                            bounds.reshape([n_images, -1])], axis=-1)
+    data = np.concatenate([poses_np.reshape([n_images, -1]),
+                            cams2pix_np.reshape([n_images, -1]),
+                            dist_params_np.reshape([n_images, -1]),
+                            bounds_np.reshape([n_images, -1])], axis=-1)
     data = np.ascontiguousarray(data.astype(np.float64))
     np.save(res_cams, data)
 
     with open(res_image_list, "w") as f:
         f.writelines(image_list)
+
+    frames = export_nerfstudio(
+        image_list, poses, cams2pix, bounds, dist_params, img_width, img_height)
+    serialize_frames(res_transforms, frames)
 
 
 def proc(x):
